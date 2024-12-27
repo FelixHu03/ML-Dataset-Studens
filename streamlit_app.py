@@ -20,6 +20,7 @@ try:
         st.metric("Most Common Education", df['Parental_Education_Level'].mode()[0])
 
     # Tutoring Sessions
+    #diagram garis
     st.header("Tutoring Sessions Analysis")
     fig_tutoring = px.line(
         df.reset_index(), 
@@ -30,6 +31,7 @@ try:
     st.plotly_chart(fig_tutoring)
 
     # Parental Education
+    #pie chart
     st.header("Parental Education Distribution")
     parental_counts = df['Parental_Education_Level'].value_counts()
     fig_parent = px.pie(
@@ -38,7 +40,9 @@ try:
     )
     st.plotly_chart(fig_parent)
 
-    # Gender Distribution
+    # Gender
+    # diagram batang
+    
     st.header("Gender Distribution")
     gender_counts = df['Gender'].value_counts()
     fig_gender = px.bar(
