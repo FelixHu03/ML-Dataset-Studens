@@ -23,7 +23,7 @@ try:
     st.header("Tutoring Sessions Analysis")
     fig_tutoring = px.line(
         df.reset_index(), 
-        x='siswa 1-n', 
+        x='siswa(1-n)', 
         y='Tutoring_Sessions',
         title="Tutoring Sessions Distribution"
     )
