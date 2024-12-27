@@ -7,7 +7,7 @@ st.set_page_config(page_title="Student Performance Analysis", page_icon="📚")
 st.title("Student Performance Analysis")
 
 try:
-    # Direct data loading
+    # Load data csv 
     df = pd.read_csv("data/StudentPerformanceFactors.csv")
     
     # Basic stats
@@ -23,7 +23,7 @@ try:
     st.header("Tutoring Sessions Analysis")
     fig_tutoring = px.line(
         df.reset_index(), 
-        x='index', 
+        x='siswa 1-n', 
         y='Tutoring_Sessions',
         title="Tutoring Sessions Distribution"
     )
