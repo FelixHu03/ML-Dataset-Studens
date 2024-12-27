@@ -1,2 +1,2 @@
-import streaimlit as st
+import streamlit as st
 st.write('Hello Word!')
