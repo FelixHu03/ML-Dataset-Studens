@@ -1,56 +1,126 @@
-import streamlit_app as st
+import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
-from sklearn.model_selection import train_test_split
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import classification_report, confusion_matrix
+import seaborn as sns
+import plotly.express as px
+
+# Page config
+st.set_page_config(
+    page_title="Student Performance Analysis",
+    page_icon="📚",
+    layout="wide"
+)
 
 # Title and description
-st.title("Data Analysis and Machine Learning App")
-st.write("This web app allows users to upload a dataset, perform basic analysis, and apply machine learning models.")
+st.title("📚 Student Performance Analysis Dashboard")
+st.markdown("Analysis of student performance factors including tutoring sessions, parental education, and gender distribution.")
 
-# File upload
-uploaded_file = st.file_uploader("Upload a CSV file", type="csv")
-if uploaded_file:
-    # Load the data
-    data = pd.read_csv(uploaded_file)
-    st.write("### Preview of the Dataset")
-    st.dataframe(data.head())
+# Data loading
+@st.cache_data
+def load_data():
+    df = pd.read_csv("StudentPerformanceFactors.csv")
+    return df
 
-    # Show basic statistics
-    st.write("### Dataset Statistics")
-    st.write(data.describe())
+try:
+    df = load_data()
+    
+    # Main metrics
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        st.metric("Total Students", len(df))
+    with col2:
+        st.metric("Average Tutoring Sessions", round(df['Tutoring_Sessions'].mean(), 2))
+    with col3:
+        st.metric("Most Common Parent Education", df['Parental_Education_Level'].mode()[0])
 
-    # Select features and target
-    st.write("### Select Features and Target")
-    features = st.multiselect("Select features", options=data.columns)
-    target = st.selectbox("Select target", options=data.columns)
+    # Tutoring Sessions Analysis
+    st.header("📊 Tutoring Sessions Distribution")
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        fig_tutoring = px.line(
+            df.reset_index(), 
+            x='index', 
+            y='Tutoring_Sessions',
+            title="Tutoring Sessions per Student"
+        )
+        fig_tutoring.update_layout(xaxis_title="Student Index", yaxis_title="Number of Sessions")
+        st.plotly_chart(fig_tutoring, use_container_width=True)
+    
+    with col2:
+        tutoring_stats = pd.DataFrame({
+            'Statistic': ['Mean', 'Median', 'Max', 'Min'],
+            'Value': [
+                df['Tutoring_Sessions'].mean(),
+                df['Tutoring_Sessions'].median(),
+                df['Tutoring_Sessions'].max(),
+                df['Tutoring_Sessions'].min()
+            ]
+        })
+        st.dataframe(tutoring_stats, use_container_width=True)
 
-    if features and target:
-        X = data[features]
-        y = data[target]
+    # Parental Education Analysis
+    st.header("👨‍👩‍👧‍👦 Parental Education Distribution")
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        parental_counts = df['Parental_Education_Level'].value_counts()
+        fig_parent = px.pie(
+            values=parental_counts.values,
+            names=parental_counts.index,
+            title="Distribution of Parental Education Levels"
+        )
+        st.plotly_chart(fig_parent, use_container_width=True)
+    
+    with col2:
+        st.dataframe(
+            df['Parental_Education_Level'].value_counts().reset_index().rename(
+                columns={'index': 'Education Level', 'Parental_Education_Level': 'Count'}
+            ),
+            use_container_width=True
+        )
 
-        # Split the data
-        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
+    # Gender Analysis
+    st.header("⚤ Gender Distribution")
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        gender_counts = df['Gender'].value_counts()
+        fig_gender = px.bar(
+            x=gender_counts.index,
+            y=gender_counts.values,
+            title="Gender Distribution",
+            labels={'x': 'Gender', 'y': 'Count'}
+        )
+        st.plotly_chart(fig_gender, use_container_width=True)
+    
+    with col2:
+        st.dataframe(
+            df['Gender'].value_counts().reset_index().rename(
+                columns={'index': 'Gender', 'Gender': 'Count'}
+            ),
+            use_container_width=True
+        )
 
-        # Train a model
-        model = RandomForestClassifier()
-        model.fit(X_train, y_train)
+    # Additional Analysis
+    st.header("🔍 Cross Analysis")
+    fig_box = px.box(
+        df,
+        x="Parental_Education_Level",
+        y="Tutoring_Sessions",
+        color="Gender",
+        title="Tutoring Sessions by Parental Education and Gender"
+    )
+    st.plotly_chart(fig_box, use_container_width=True)
 
-        # Make predictions
-        predictions = model.predict(X_test)
+    # Raw Data
+    if st.checkbox("Show Raw Data"):
+        st.dataframe(df)
 
-        # Display metrics
-        st.write("### Model Performance")
-        st.text("Classification Report:")
-        st.text(classification_report(y_test, predictions))
+except Exception as e:
+    st.error(f"Error loading data: {str(e)}")
+    st.info("Please ensure the CSV file is in the same directory as the script.")
 
-        # Display confusion matrix
-        st.write("### Confusion Matrix")
-        fig, ax = plt.subplots()
-        cm = confusion_matrix(y_test, predictions)
-        ax.matshow(cm, cmap="Blues", alpha=0.7)
-        for i in range(cm.shape[0]):
-            for j in range(cm.shape[1]):
-                ax.text(x=j, y=i, s=cm[i, j], va='center', ha='center')
-        st.pyplot(fig)
+# Footer
+st.markdown("---")
+st.markdown("Created by Felix")
